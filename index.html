@@ -1,0 +1,117 @@
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script><!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RAR Password Cracker</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .hover-scale {
+            transition: transform 0.3s ease;
+        }
+        .hover-scale:hover {
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-white min-h-screen flex flex-col">
+    <header class="bg-blue-800 py-6">
+        <div class="container mx-auto px-4 text-center">
+            <h1 class="text-4xl font-bold mb-2">RAR Password Cracker</h1>
+            <p class="text-lg">A simple batch script to brute-force numeric passwords for RAR files.</p>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 py-12 flex-grow">
+        <section class="mb-12 text-center">
+            <h2 class="text-2xl font-semibold mb-4">Download the Script</h2>
+            <p class="mb-6">Get the batch file to crack RAR passwords with a numeric brute-force approach.</p>
+            <a href="files/crack_rar.bat" download class="inline-block bg-blue-600 text-white font-semibold py-3 px-6 rounded-lg hover:bg-blue-700 hover-scale">Download crack_rar.bat</a>
+        </section>
+
+        <section class="mb-12">
+            <h2 class="text-2xl font-semibold mb-4 text-center">How to Use the Script</h2>
+            <div class="bg-gray-800 p-6 rounded-lg shadow-lg">
+                <ol class="list-decimal list-inside space-y-4">
+                    <li><strong>Install WinRAR</strong>: Ensure WinRAR is installed on your system (unrar.exe must be in "C:\Program Files\WinRAR\"). Download it from the official site if needed.</li>
+                    <li><strong>Download the Script</strong>: Click the button above to download <code>crack_rar.bat</code>.</li>
+                    <li><strong>Place the RAR File</strong>: Have your password-protected RAR file ready on your computer.</li>
+                    <li><strong>Run the Script</strong>: Double-click <code>crack_rar.bat</code> or run it via Command Prompt. Drag and drop your RAR file into the terminal or paste its full path when prompted.</li>
+                    <li><strong>Wait for Results</strong>: The script will try numeric passwords from 0 to 9999. If the password is found, it will display it; otherwise, it will stop after 9999 attempts.</li>
+                    <li><strong>Check Output</strong>: If successful, the RAR contents will be extracted to a temporary folder, and the password will be shown. The temp folder is deleted automatically.</li>
+                </ol>
+            </div>
+        </section>
+
+        <section class="mb-12">
+            <h2 class="text-2xl font-semibold mb-4 text-center">Notes</h2>
+            <div class="bg-gray-800 p-6 rounded-lg shadow-lg">
+                <ul class="list-disc list-inside space-y-2">
+                    <li>This script only tries numeric passwords (0-9999). Modify it for other ranges or character sets if needed.</li>
+                    <li>Ensure the RAR file path has no spaces or use quotes if it does.</li>
+                    <li>Running this on large password ranges can take time. Be patient or adjust the script for efficiency.</li>
+                    <li>No guarantees—use at your own risk. This is for educational purposes or recovering your own files.</li>
+                </ul>
+            </div>
+        </section>
+    </main>
+
+    <footer class="bg-blue-800 py-4 text-center">
+        <p>&copy; 2025 RAR Password Cracker. Hosted on GitHub Pages.</p>
+    </footer>
+
+    <script>
+        // Add smooth scroll for any anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                e.preventDefault();
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
+    </script>
+</body>
+</html>
