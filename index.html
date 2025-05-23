@@ -1,43 +1,4 @@
-<script type="text/javascript">
-        var gk_isXlsx = false;
-        var gk_xlsxFileLookup = {};
-        var gk_fileData = {};
-        function filledCell(cell) {
-          return cell !== '' && cell != null;
-        }
-        function loadFileData(filename) {
-        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
-            try {
-                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
-                var firstSheetName = workbook.SheetNames[0];
-                var worksheet = workbook.Sheets[firstSheetName];
-
-                // Convert sheet to JSON to filter blank rows
-                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
-                // Filter out blank rows (rows where all cells are empty, null, or undefined)
-                var filteredData = jsonData.filter(row => row.some(filledCell));
-
-                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
-                var headerRowIndex = filteredData.findIndex((row, index) =>
-                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
-                );
-                // Fallback
-                if (headerRowIndex === -1 || headerRowIndex > 25) {
-                  headerRowIndex = 0;
-                }
-
-                // Convert filtered JSON back to CSV
-                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
-                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
-                return csv;
-            } catch (e) {
-                console.error(e);
-                return "";
-            }
-        }
-        return gk_fileData[filename] || "";
-        }
-        </script><!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -47,63 +8,124 @@
     <style>
         body {
             font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #1a202c, #2d3748);
+        }
+        .neon-glow {
+            box-shadow: 0 0 10px rgba(59, 130, 246, 0.7), 0 0 20px rgba(236, 72, 153, 0.5);
         }
         .hover-scale {
-            transition: transform 0.3s ease;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
         .hover-scale:hover {
             transform: scale(1.05);
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.9);
+        }
+        .terminal {
+            background: #1a1a1a;
+            font-family: 'Courier New', monospace;
+            white-space: pre-wrap;
+            overflow-x: auto;
+        }
+        @keyframes blink {
+            50% { opacity: 0; }
+        }
+        .cursor {
+            animation: blink 1s step-end infinite;
         }
     </style>
 </head>
-<body class="bg-gray-900 text-white min-h-screen flex flex-col">
-    <header class="bg-blue-800 py-6">
+<body class="text-white min-h-screen flex flex-col">
+    <header class="bg-gradient-to-r from-blue-800 to-pink-600 py-8">
         <div class="container mx-auto px-4 text-center">
-            <h1 class="text-4xl font-bold mb-2">RAR Password Cracker</h1>
-            <p class="text-lg">A simple batch script to brute-force numeric passwords for RAR files.</p>
+            <h1 class="text-5xl font-extrabold mb-3 animate-pulse">RAR Password Cracker</h1>
+            <p class="text-xl">Brute-force your RAR files like a fucking boss. Numeric passwords, no bullshit.</p>
         </div>
     </header>
 
     <main class="container mx-auto px-4 py-12 flex-grow">
         <section class="mb-12 text-center">
-            <h2 class="text-2xl font-semibold mb-4">Download the Script</h2>
-            <p class="mb-6">Get the batch file to crack RAR passwords with a numeric brute-force approach.</p>
-            <a href="files/crack_rar.bat" download class="inline-block bg-blue-600 text-white font-semibold py-3 px-6 rounded-lg hover:bg-blue-700 hover-scale">Download crack_rar.bat</a>
+            <h2 class="text-3xl font-bold mb-4">Grab the Damn Script</h2>
+            <p class="mb-6 text-lg">Download the batch file and crack those RARs wide open.</p>
+            <a href="files/crack_rar.bat" download class="inline-block bg-blue-600 text-white font-semibold py-3 px-8 rounded-lg neon-glow hover-scale">Download crack_rar.bat</a>
         </section>
 
         <section class="mb-12">
-            <h2 class="text-2xl font-semibold mb-4 text-center">How to Use the Script</h2>
-            <div class="bg-gray-800 p-6 rounded-lg shadow-lg">
-                <ol class="list-decimal list-inside space-y-4">
-                    <li><strong>Install WinRAR</strong>: Ensure WinRAR is installed on your system (unrar.exe must be in "C:\Program Files\WinRAR\"). Download it from the official site if needed.</li>
-                    <li><strong>Download the Script</strong>: Click the button above to download <code>crack_rar.bat</code>.</li>
-                    <li><strong>Place the RAR File</strong>: Have your password-protected RAR file ready on your computer.</li>
-                    <li><strong>Run the Script</strong>: Double-click <code>crack_rar.bat</code> or run it via Command Prompt. Drag and drop your RAR file into the terminal or paste its full path when prompted.</li>
-                    <li><strong>Wait for Results</strong>: The script will try numeric passwords from 0 to 9999. If the password is found, it will display it; otherwise, it will stop after 9999 attempts.</li>
-                    <li><strong>Check Output</strong>: If successful, the RAR contents will be extracted to a temporary folder, and the password will be shown. The temp folder is deleted automatically.</li>
-                </ol>
+            <h2 class="text-3xl font-bold mb-4 text-center">Live Demo: See the Shit in Action</h2>
+            <div class="bg-gray-800 p-6 rounded-lg neon-glow">
+                <p class="mb-4">Enter a mock RAR file name and watch the script try passwords (simulated, up to 9999).</p>
+                <input id="demoInput" type="text" placeholder="e.g., secret.rar" class="w-full p-2 mb-4 text-black rounded">
+                <button id="startDemo" class="bg-pink-600 text-white font-semibold py-2 px-6 rounded-lg hover-scale">Run Demo</button>
+                <div id="terminalOutput" class="terminal p-4 mt-4 rounded text-green-400 h-64 overflow-y-auto">
+                    <p>Ready to crack. Enter a file name and hit Run Demo.<span class="cursor">█</span></p>
+                </div>
             </div>
         </section>
 
         <section class="mb-12">
-            <h2 class="text-2xl font-semibold mb-4 text-center">Notes</h2>
-            <div class="bg-gray-800 p-6 rounded-lg shadow-lg">
-                <ul class="list-disc list-inside space-y-2">
-                    <li>This script only tries numeric passwords (0-9999). Modify it for other ranges or character sets if needed.</li>
-                    <li>Ensure the RAR file path has no spaces or use quotes if it does.</li>
-                    <li>Running this on large password ranges can take time. Be patient or adjust the script for efficiency.</li>
-                    <li>No guarantees—use at your own risk. This is for educational purposes or recovering your own files.</li>
-                </ul>
+            <h2 class="text-3xl font-bold mb-4 text-center">How to Use the Script</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="bg-gray-800 p-6 rounded-lg neon-glow">
+                    <h3 class="text-xl font-semibold mb-2">Steps</h3>
+                    <ol class="list-decimal list-inside space-y-2">
+                        <li>Install WinRAR (get <code>unrar.exe</code> in "C:\Program Files\WinRAR").</li>
+                        <li>Download <code>crack_rar.bat</code> from the button above.</li>
+                        <li>Have your locked RAR file ready somewhere on your machine.</li>
+                        <li>Run the script (double-click or via Command Prompt).</li>
+                        <li>Drag your RAR file into the terminal or paste its path.</li>
+                        <li>Wait as it tries passwords from 0 to 9999. If it cracks it, you’ll see the password and extracted files.</li>
+                    </ol>
+                </div>
+                <div class="bg-gray-800 p-6 rounded-lg neon-glow">
+                    <h3 class="text-xl font-semibold mb-2">Notes</h3>
+                    <ul class="list-disc list-inside space-y-2">
+                        <li>Only tries numeric passwords (0-9999). Want more? Edit the script, nerd.</li>
+                        <li>Paths with spaces? Use quotes or get fucked.</li>
+                        <li>Big ranges take time. Don’t cry if it’s slow.</li>
+                        <li>This is for your own files or educational shit. Don’t be a dick.</li>
+                    </ul>
+                </div>
             </div>
         </section>
     </main>
 
-    <footer class="bg-blue-800 py-4 text-center">
-        <p>&copy; 2025 RAR Password Cracker. Mada by Anonymous-Silva.</p>
+    <footer class="bg-gradient-to-r from-blue-800 to-pink-600 py-4 text-center">
+        <p>© 2025 RAR Password Cracker. Made by Anonymous-Silva. Built to fuck with locked files.</p>
     </footer>
 
     <script>
-        // Add smooth scroll for any anchor links
+        const demoInput = document.getElementById('demoInput');
+        const startDemo = document.getElementById('startDemo');
+        const terminalOutput = document.getElementById('terminalOutput');
+
+        startDemo.addEventListener('click', () => {
+            const fileName = demoInput.value.trim() || 'secret.rar';
+            terminalOutput.innerHTML = `Starting password cracking for ${fileName}...\nTrying numeric passwords...\n`;
+            let pass = 0;
+            let cracked = false;
+
+            const interval = setInterval(() => {
+                if (pass >= 10000 || cracked) {
+                    clearInterval(interval);
+                    if (!cracked) {
+                        terminalOutput.innerHTML += `Password not found in range 0-9999. Try a different range or method.\n`;
+                    }
+                    terminalOutput.innerHTML += `<span class="cursor">█</span>`;
+                    return;
+                }
+
+                pass++;
+                terminalOutput.innerHTML += `Trying password: ${pass}\n`;
+                terminalOutput.scrollTop = terminalOutput.scrollHeight;
+
+                // Simulate cracking at a random point for demo
+                if (Math.random() < 0.01 && pass > 50) { // ~1% chance per attempt after 50
+                    cracked = true;
+                    terminalOutput.innerHTML += `\nSuccess! Password found: ${pass}\n`;
+                }
+            }, 100); // 100ms delay for visual effect
+        });
+
+        // Smooth scroll for anchor links
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {
             anchor.addEventListener('click', function(e) {
                 e.preventDefault();
